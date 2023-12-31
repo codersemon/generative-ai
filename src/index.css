@@ -1,0 +1,25 @@
+.ai_reply_list{
+  list-style: none;
+  padding: 0;
+}
+.ai_reply_list li:nth-child(odd){
+  font-weight: 600;
+  margin-top: 10px;
+  margin-left: 50px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  padding: 20px;
+}
+.ai_reply_list li:nth-child(even){
+  margin-top: 10px;
+  margin-right: 50px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  padding: 20px;
+}
+.loader_div{
+  text-align: center;
+}
+.loader_div img{
+  width: 50px;
+}
