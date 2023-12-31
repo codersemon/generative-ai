@@ -18,31 +18,50 @@ function App() {
     simple_text_prompt: "",
   });
 
+
   async function run() {
-    // show loader  
+    // show loader
     setLoaderImg(true);
 
-    // For text-only input, use the gemini-pro model
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
-
-    const prompt = input.simple_text_prompt;
-
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const text = response.text();
-
-    // update the reply state to show on frontend
-    setReply((prevState) => [...prevState, input.simple_text_prompt, text]);
+    // add the search query in the state
+    setReply((prevState) => [...prevState, input.simple_text_prompt]);
 
     // reset form
     handleFormReset();
 
-     // hide loader img
-     setLoaderImg(false);
+    // For text-only input, use the gemini-pro model
+    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+
+    // search query from the search form
+    const prompt = input.simple_text_prompt;
+
+    // Use streaming with text-only input
+    const result = await model.generateContentStream(prompt);
+
+    // streaming reply 
+    let text = "";
+    for await (const chunk of result.stream) {
+      const chunkText = chunk.text();
+      console.log(chunkText);
+      text += chunkText;
+
+      setTempResponse({status: true, data: text});
+    }
+
+    setTempResponse({status: false, data: ''});
+
+    // add the search result in the state
+    setReply((prevState) => [...prevState, text]);
+
+    // hide loader img
+    setLoaderImg(false);
   }
 
-  // loader image state 
+  // loader image state
   const [loaderImg, setLoaderImg] = useState(false);
+
+  // temp reponse state 
+  const [tempResponse, setTempResponse] = useState({status: false, data: ''});
 
   return (
     <>
@@ -55,6 +74,33 @@ function App() {
               <li className="list-inline-item">Chat</li>
             </ul>
           </div> */}
+
+          
+
+          <div className="ai_reply_n_questions">
+            <ul className="ai_reply_list">
+              {replies.length > 0
+                ? replies.map((item, index) => {
+                    return (
+                      <li key={index}>
+                        <pre dangerouslySetInnerHTML={{ __html: item }} />
+                      </li>
+                    );
+                  })
+                : ""}
+
+                {tempResponse.status && <li>{tempResponse.data}</li>}
+
+              {loaderImg && (
+                <div className="loader_div mt-2">
+                  <img
+                    src="https://i.gifer.com/origin/b4/b4d657e7ef262b88eb5f7ac021edda87.gif"
+                    className="loader_img"
+                  />
+                </div>
+              )}
+            </ul>
+          </div>
 
           <div className="ai_body">
             <div className="mb-2">
@@ -72,21 +118,6 @@ function App() {
                 Get Answer
               </button>
             </div>
-          </div>
-
-          <div className="ai_reply_n_questions">
-            <ul className="ai_reply_list">
-              {replies.length > 0
-                ? replies.map((item, index) => {
-                    return <li key={index}>{item}</li>;
-                  })
-                : ""}
-
-                {loaderImg && <div className="loader_div">
-                 <img src="https://i.gifer.com/origin/b4/b4d657e7ef262b88eb5f7ac021edda87.gif" className="loader_img" />
-                </div>}
-                
-            </ul>
           </div>
         </div>
       </div>
